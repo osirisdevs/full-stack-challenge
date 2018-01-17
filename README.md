@@ -1,39 +1,121 @@
 # Full Stack Developer Challenge
-This is an interview challenge for Paytm Labs. Please feel free to fork. Pull Requests will be ignored.
+This is Oasis Vali's submission for the Paytm Labs interview challenge.
 
-## Requirements
-Design a web application that allows employees to submit feedback toward each other's performance review.
+## Assumptions
 
-*Partial solutions are acceptable.*  It is not necessary to submit a complete solution that implements every requirement.
+1. Authentication system is required, as well as basic support for permissions to differentiate
+between standard employee and admin user types.
+2. Admin accounts creation can be handled outside the scope of the web application.
+3. Employee account creation is handled via the Admin interface. Authentication details
+(username, password) are provided by the Admin user creating the account. This is an insecure
+practice for a real-world application, but simplifies the project for the scope of the challenge (
+especially since we do not have to implement a signup workflow).
+4. Each performance review collects feedback on only one employee.
+5. 1 or more employees can be assigned to provide feedback on another employee as part of a single
+performance review.
+6. The employee whose performance is being reviewed cannot be assigned to provide feedback for their
+own performance review.
+7. Once feedback is submitted as part of a performance review, it can only be updated by an Admin.
+8. There is no due date for the submission of a performance review (Although this would be a
+probable enhancement). Similarly, more reviewers can be added to an existing performance review at
+any time.
+9. Using a development server for serving static resources and an embedded database is sufficient
+for the challenge use-case as it simplifies the development setup.
+10. Since this is a challenge, nice-to-haves such as unit testing, error handling etc. are not
+prioritized
+11. Since this is a challenge, with the focus being on development speed, certain performance
+improvements are not prioritized such as paging, delta updates to redux state etc.
+12. In case of concurrent updates, a last-write-wins approach will be used.
+13. When an employee is deleted, all of their performance reviews are also deleted, as well as their
+assigned reviews.
 
-### Admin view
-* Add/remove/update/view employees
-* Add/update/view performance reviews
-* Assign employees to participate in another employee's performance review
+## Tech Choices
 
-### Employee view
-* List of performance reviews requiring feedback
-* Submit feedback
+1. Django (with Python3) as backend framework - I have prior development experience with it. It also
+has a batteries-included approach which will make it easier to get to an MVP for the challenge (e.g.
+It provides an inbuilt authentication application with user and admin models).
+2. Django REST framework is used on top of Django as it makes it easier to build a REST web API with
+Django while enforcing best practices.
+3. Django REST framework JWT provides JWT authentication support for the web API. It plugs into the
+Django authentication application and extends the Django REST framework so that client-side requests
+can be reliably authenticated.
+4. Sqlite embedded database for the persistent store. It is lightweight, simple to setup and
+integrates well with the Django ORM.
+5. pip3 for managing python package dependencies
+6. Create-React-App for bootstrapping the client-side Web App. It enforces industry best practices
+and allows us to quickly prototype and iterate on the MVP. (Includes webpack, babel etc. for module
+bundling)
+7. Axios for making calls to the REST API from client side. It is a widely used library for AJAX
+with a clean, readable Promise-based syntax.
+8. Redux (with react-redux bindings) for state management on the Frontend.
+9. Bootstrap paper for theming.
+10. React-Router for client-side routing since we will be building a SPA.
+11. React-Jsonschema-Form for building forms quickly.
+12. React-modal for providing access to forms without requiring navigation.
 
-## Challenge Scope
-* High level description of design and technologies used
-* Server side API (using a programming language and/or framework of your choice)
-  * Implementation of at least 3 API calls
-  * Most full stack web developers at Paytm Labs currently use Node.js and/or Ruby on Rails on the server (with MySQL for the database), but feel free to use other tech if you prefer
-* Web app
-  * Implementation of 2-5 web pages using a modern web framework (preferably React) that talks to server side
-    * This should integrate with your API, but it's fine to use static responses for some of it 
-* Document all assumptions made
-* Complete solutions aren't required, but what you do submit needs to run.
 
-## How to complete this challenge
-* Fork this repo in github
-* Complete the design and code as defined to the best of your abilities
-* Place notes in your code to help with clarity where appropriate. Make it readable enough to present to the Paytm Labs interview team
-* Complete your work in your own github repo and send the results to us and/or present them during your interview
+## Design Decisions
 
-## What are we looking for? What does this prove?
-* Assumptions you make given limited requirements
-* Technology and design choices
-* Identify areas of your strengths
-* This is not a pass or fail test, this will serve as a common ground that we can deep dive together into specific issues
+1. Database structure (ORM models):
+  * User - username, email, password (hashed)
+  * Admin - username, email, password (hashed)
+  * PerformanceReview - reviewee (fk to User)
+  * ReviewFeedback - performanceReview (fk to PerformanceReview), reviewer (fk  to User), feedback
+
+2. Redux state structure:
+  * authReducer - tracks user authenticated state (JWT is also persisted in the localStorage)
+  * adminReducer - keeps list of employees and performance reviews
+  * employeeReducer - keeps list of performance reviews
+
+3. REST API Routing:
+  * POST `/login` { username, password } -> token
+  * GET `/employees` { token }
+  * POST `/employee/{username}` { token, employee: { email, password } }
+  * DELETE `/employee/{username}` { token }
+  * GET `/performance-reviews` { token }
+  * POST `/performance-review/{username}` { token } -> performanceReviewId
+  * POST `/performance-review/{performanceReviewId}/{reviewerUsername}` { token }
+  * DELETE `/performance-review/{performanceReviewId}/{reviewerUsername}` { token }
+  * POST `/performance-review/{performanceReviewId}/` { token, feedback }
+
+4. SPA Router structure:
+  * `/` - root, redirect to /login if not authenticated, otherwise redirect to /admin or /home based
+  on type of user.
+  * `/login` - show login form. If already authenticated, redirect to /admin or /home based on type
+  of user.
+  * `/admin` - admin home page. If not authenticated, redirect to /login
+  * `/home` - employee home page. If not authenticated, redirect to /login
+
+5. Client-side Data flow: To keep things simple and consistent, the data being displayed on the page
+will be completely refreshed after any change is submitted. This is bad for performance but we can
+assume that the number of employees and reviews in the system will not be extremely high for the MVP
+. In any case, the Data flow can be optimized to incorporate delta updates in the future.
+
+
+## Quickstart
+
+**Prerequisites**: node, npm, python3, pip3, sqlite3
+(Ideally development should be taking place inside virtual environments. See **virtualenv** for
+python3 and **nvm** for node)
+
+1. Install dependencies
+```
+cd backend/
+pip3 install -r requirements.txt
+cd ../frontend/
+npm install
+cd ..
+```
+
+2. Build the frontend bundle
+```
+cd frontend/
+npm run build
+cd ..
+```
+
+3. Run the backend server (which is the django development server):
+```
+cd backend/
+python3 manage.py run
+```
