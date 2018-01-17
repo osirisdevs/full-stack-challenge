@@ -6,8 +6,8 @@ This is Oasis Vali's submission for the Paytm Labs interview challenge.
 1. Authentication system is required, as well as basic support for permissions to differentiate
 between standard employee and admin user types.
 2. Admin accounts creation can be handled outside the scope of the web application.
-3. Employee account creation is handled via the Admin interface. Authentication details
-(username, password) are provided by the Admin user creating the account. This is an insecure
+3. Employee account creation (and management) is handled via the Admin interface. Authentication
+details (username, password) are provided by the Admin creating the account. This is an insecure
 practice for a real-world application, but simplifies the project for the scope of the challenge (
 especially since we do not have to implement a signup workflow).
 4. Each performance review collects feedback on only one employee.
@@ -71,11 +71,14 @@ with a clean, readable Promise-based syntax.
   * POST `/login` { username, password } -> token
   * GET `/employees` { token }
   * POST `/employee/{username}` { token, employee: { email, password } }
+  * PUT `/employee/{username}` { token, employee: { email, password } }
   * DELETE `/employee/{username}` { token }
   * GET `/performance-reviews` { token }
-  * POST `/performance-review/{username}` { token } -> performanceReviewId
-  * POST `/performance-review/{performanceReviewId}/{reviewerUsername}` { token }
-  * DELETE `/performance-review/{performanceReviewId}/{reviewerUsername}` { token }
+  * POST `/performance-review/` { token, reviewee } -> performanceReviewId
+  * DELETE `/performance-review/{performanceReviewId}` { token }
+  * GET `/review-feedbacks/` { token }
+  * POST `/review-feedback/` { token, reviewer, performanceReviewId } -> reviewFeedbackId
+  * PUT `/review-feedback/{reviewFeedbackId}` { token, feedback, performanceReviewId } -> reviewFeedbackId
   * POST `/performance-review/{performanceReviewId}/` { token, feedback }
 
 4. SPA Router structure:
@@ -114,8 +117,16 @@ npm run build
 cd ..
 ```
 
+3. Create initial admin account
+```
+cd backend/api/
+python3 manage.py migrate
+python3 manage.py createsuperuser --email {SOME_EMAIL} --username {SOME_USERNAME}
+cd ../..
+```
+
 3. Run the backend server (which is the django development server):
 ```
-cd backend/
-python3 manage.py run
+cd backend/api/
+python3 manage.py runserver
 ```
