@@ -3,7 +3,7 @@ from rest_framework import serializers
 from performancereview.models import PerformanceReview, ReviewFeedback
 
 
-class UserSerializerCreate(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
         fields = ('url', 'username', 'email', 'password')
@@ -13,7 +13,7 @@ class UserSerializerCreate(serializers.HyperlinkedModelSerializer):
         user.save()
         return user
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializerPut(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
         fields = ('url', 'email', 'password')
@@ -24,17 +24,24 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         return user
 
 
-class PerformanceReviewSerializerCreate(serializers.HyperlinkedModelSerializer):
+class PerformanceReviewSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = PerformanceReview
         fields = ('url', 'reviewee')
 
-class PerformanceReviewSerializer(serializers.HyperlinkedModelSerializer):
+class PerformanceReviewSerializerGet(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        depth = 2
+        model = PerformanceReview
+        fields = ('url', 'reviewee', 'reviewfeedback_set', 'pk')
+
+class PerformanceReviewSerializerPut(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = PerformanceReview
         fields = ('url',)
 
-class ReviewFeedbackSerializerCreate(serializers.HyperlinkedModelSerializer):
+class ReviewFeedbackSerializer(serializers.HyperlinkedModelSerializer):
+
     class Meta:
         model = ReviewFeedback
         fields = ('url', 'reviewer', 'feedback', 'performanceReview')
@@ -48,8 +55,15 @@ class ReviewFeedbackSerializerCreate(serializers.HyperlinkedModelSerializer):
             raise serializers.ValidationError("Invalid reviewer")
         return data
 
+class ReviewFeedbackSerializerGet(serializers.HyperlinkedModelSerializer):
 
-class ReviewFeedbackSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        depth = 2
+        model = ReviewFeedback
+        fields = ('url', 'reviewer', 'feedback', 'performanceReview')
+
+
+class ReviewFeedbackSerializerPut(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ReviewFeedback
         fields = ('url', 'feedback')

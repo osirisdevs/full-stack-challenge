@@ -14,7 +14,8 @@ especially since we do not have to implement a signup workflow).
 5. 1 or more employees can be assigned to provide feedback on another employee as part of a single
 performance review.
 6. The employee whose performance is being reviewed cannot be assigned to provide feedback for their
-own performance review.
+own performance review. However, the same employee can be asked to submit multiple reviews for another employee,
+either as part of the same review or under seperate reviews.
 7. Once feedback is submitted as part of a performance review, it can only be updated by an Admin.
 8. There is no due date for the submission of a performance review (Although this would be a
 probable enhancement). Similarly, more reviewers can be added to an existing performance review at
@@ -28,6 +29,8 @@ improvements are not prioritized such as paging, delta updates to redux state et
 12. In case of concurrent updates, a last-write-wins approach will be used.
 13. When an employee is deleted, all of their performance reviews are also deleted, as well as their
 assigned reviews.
+14. Browser support is not a major concern so we can use newer features of the spec without worrying
+about backwards compatibility.
 
 ## Tech Choices
 
@@ -52,7 +55,7 @@ with a clean, readable Promise-based syntax.
 10. React-Router for client-side routing since we will be building a SPA.
 11. React-Jsonschema-Form for building forms quickly.
 12. React-modal for providing access to forms without requiring navigation.
-
+13. Redux-thunk middleware for dispatching async actions.
 
 ## Design Decisions
 
@@ -69,31 +72,31 @@ with a clean, readable Promise-based syntax.
 
 3. REST API Routing:
   * POST `/login` { username, password } -> token
-  * GET `/employees` { token }
-  * POST `/employee/{username}` { token, employee: { email, password } }
-  * PUT `/employee/{username}` { token, employee: { email, password } }
-  * DELETE `/employee/{username}` { token }
+  * GET `/users` { token }
+  * POST `/users/` { token, { username, email, password } }
+  * PUT `/users/{userId}` { token, { email, password } }
+  * DELETE `/users/{userId}` { token }
   * GET `/performance-reviews` { token }
-  * POST `/performance-review/` { token, reviewee } -> performanceReviewId
-  * DELETE `/performance-review/{performanceReviewId}` { token }
+  * POST `/performance-reviews/` { token, reviewee }
+  * DELETE `/performance-reviews/{performanceReviewId}` { token }
   * GET `/review-feedbacks/` { token }
-  * POST `/review-feedback/` { token, reviewer, performanceReviewId } -> reviewFeedbackId
-  * PUT `/review-feedback/{reviewFeedbackId}` { token, feedback, performanceReviewId } -> reviewFeedbackId
-  * POST `/performance-review/{performanceReviewId}/` { token, feedback }
+  * POST `/review-feedbacks/` { token, reviewer, performanceReviewId }
+  * PUT `/review-feedbacks/{reviewFeedbackId}` { token, feedback }
+  * DELETE `/review-feedbacks/{reviewFeedbackId}` { token }
 
 4. SPA Router structure:
-  * `/` - root, redirect to /login if not authenticated, otherwise redirect to /admin or /home based
-  on type of user.
-  * `/login` - show login form. If already authenticated, redirect to /admin or /home based on type
-  of user.
-  * `/admin` - admin home page. If not authenticated, redirect to /login
-  * `/home` - employee home page. If not authenticated, redirect to /login
+  * `/` - root, redirect to /login if not authenticated, otherwise redirect to /home
+  * `/login` - show login form. If already authenticated, redirect to /home
+  * `/home` - employee or admin home page. If not authenticated, redirect to /login
 
 5. Client-side Data flow: To keep things simple and consistent, the data being displayed on the page
 will be completely refreshed after any change is submitted. This is bad for performance but we can
 assume that the number of employees and reviews in the system will not be extremely high for the MVP
 . In any case, the Data flow can be optimized to incorporate delta updates in the future.
 
+6. An easy mechanism for syncing and refreshing client-side app state is achieved by reloading then
+entire app on any data update. This is very bad for performance and scalability, but makes the code
+easier to reason about for an MVP.
 
 ## Quickstart
 

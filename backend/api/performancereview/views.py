@@ -2,9 +2,10 @@ from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from performancereview.models import PerformanceReview, ReviewFeedback
 from rest_framework import viewsets, mixins
+from rest_framework.reverse import reverse
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
-from performancereview.serializers import UserSerializer, PerformanceReviewSerializer, ReviewFeedbackSerializer, UserSerializerCreate, PerformanceReviewSerializerCreate, ReviewFeedbackSerializerCreate
+from performancereview.serializers import UserSerializer, PerformanceReviewSerializer, ReviewFeedbackSerializer, UserSerializerPut, PerformanceReviewSerializerGet, PerformanceReviewSerializerPut, ReviewFeedbackSerializerGet, ReviewFeedbackSerializerPut
 
 class NoUpdateViewSet(mixins.RetrieveModelMixin,
                     mixins.CreateModelMixin,
@@ -18,14 +19,14 @@ class UserViewSet(viewsets.ModelViewSet):
     API endpoint that allows users to be viewed or edited.
     """
     queryset = User.objects.all().order_by('-date_joined')
-    serializer_class = UserSerializerCreate
+    serializer_class = UserSerializer
     permission_classes = (IsAuthenticated, IsAdminUser)
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
 
         if self.request.method == 'PUT':
-            serializer_class = UserSerializer
+            serializer_class = UserSerializerPut
 
         return serializer_class
 
@@ -35,16 +36,24 @@ class PerformanceReviewViewSet(NoUpdateViewSet):
     API endpoint that allows performance reviews to be viewed or edited.
     """
     queryset = PerformanceReview.objects.all().order_by('reviewee__pk')
-    serializer_class = PerformanceReviewSerializerCreate
+    serializer_class = PerformanceReviewSerializer
     permission_classes = (IsAuthenticated, IsAdminUser)
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
 
         if self.request.method == 'PUT':
-            serializer_class = PerformanceReviewSerializer
+            serializer_class = PerformanceReviewSerializerPut
+        if self.request.method == 'GET':
+            serializer_class = PerformanceReviewSerializerGet
 
         return serializer_class
+
+    # custom method so we can create via username instead of resource url
+    def create(self, request):
+        reviewee = get_object_or_404(User, username=request.data['reviewee'])
+        request.data['reviewee'] = UserSerializer(reviewee, context={ 'request': request }).data.get('url')
+        return super().create(request)
 
 # only admin to delete
 # only allow reviewer to update
@@ -53,7 +62,7 @@ class ReviewFeedbackViewSet(viewsets.ModelViewSet):
     API endpoint that allows individual review feedback to be viewed or edited.
     """
     queryset = ReviewFeedback.objects.all().order_by('reviewer__pk')
-    serializer_class = ReviewFeedbackSerializerCreate
+    serializer_class = ReviewFeedbackSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
@@ -100,6 +109,18 @@ class ReviewFeedbackViewSet(viewsets.ModelViewSet):
         serializer_class = self.serializer_class
 
         if self.request.method == 'PUT':
-            serializer_class = ReviewFeedbackSerializer
+            serializer_class = ReviewFeedbackSerializerPut
+        if self.request.method == 'GET':
+            serializer_class = ReviewFeedbackSerializerGet
 
         return serializer_class
+
+    # custom method so we can create via username instead of resource url
+    def create(self, request):
+        reviewer = get_object_or_404(User, username=request.data['reviewer'])
+        performanceReview = get_object_or_404(PerformanceReview, pk=request.data['performanceReviewId'])
+
+        request.data['reviewer'] = UserSerializer(reviewer, context={ 'request': request }).data.get('url')
+        request.data['performanceReview'] = PerformanceReviewSerializer(performanceReview, context={ 'request': request }).data.get('url')
+
+        return super().create(request)
