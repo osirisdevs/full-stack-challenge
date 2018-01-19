@@ -13,7 +13,7 @@ const SERVER_URL = 'http://localhost:8000/';
 
 export function login(payload) {
   return dispatch => {
-    const authenticationRequest = axios.post(SERVER_URL + 'login/', payload).then(
+    axios.post(SERVER_URL + 'login/', payload).then(
       ({data}) => {
         // save token into localstorage for persistence
         localStorage.token = data.token

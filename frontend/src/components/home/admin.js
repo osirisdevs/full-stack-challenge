@@ -13,13 +13,13 @@ const AdminView = ({
     <table className="table table-dark">
       <thead>
         <tr>
-          <th className="text-center" scope="col">
+          <th scope="col">
             Username
           </th>
-          <th className="text-center" scope="col">
+          <th scope="col">
             Edit
           </th>
-          <th className="text-center" scope="col">
+          <th scope="col">
             Delete
           </th>
         </tr>
@@ -71,16 +71,16 @@ const AdminView = ({
     <table className="table table-dark">
       <thead>
         <tr>
-          <th className="text-center" scope="col">
+          <th scope="col">
             For
           </th>
-          <th className="text-center" scope="col">
+          <th scope="col">
             Reviewers
           </th>
-          <th className="text-center" scope="col">
+          <th scope="col">
             Add Reviewer
           </th>
-          <th className="text-center" scope="col">
+          <th scope="col">
             Delete
           </th>
         </tr>

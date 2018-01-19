@@ -18,5 +18,5 @@ export default function configureStore() {
     rootReducer,
     initialState,
     compose(applyMiddleware(thunkMiddleware), f => f)
-  );;
+  );
 }

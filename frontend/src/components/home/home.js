@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { logout, checkAdminPrivileges, loadEmployeeData, loadAdminData, putReviewFeedback, postNewReviewFeedback, postNewPerformanceReview, deleteUser, deleteReviewFeedback, deletePerformanceReview, putUser, postNewUser } from '../../actions';
-import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import AppModal from './modal';
 import AdminView from './admin';

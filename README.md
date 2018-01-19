@@ -113,14 +113,13 @@ npm install
 cd ..
 ```
 
-2. Build the frontend bundle
+2. Run the frontend server
 ```
 cd frontend/
-npm run build
-cd ..
+npm run start
 ```
 
-3. Create initial admin account
+3. In a new terminal, create initial admin account
 ```
 cd backend/api/
 python3 manage.py migrate
@@ -133,3 +132,5 @@ cd ../..
 cd backend/api/
 python3 manage.py runserver
 ```
+
+4. Access the app on localhost:3000 and the api on localhost:8000

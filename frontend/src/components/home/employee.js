@@ -6,13 +6,13 @@ const EmployeeView = ({ employeeData, modalCb }) => (
     <table className="table table-dark">
       <thead>
         <tr>
-          <th className="text-center" scope="col">
+          <th scope="col">
             Reviewee
           </th>
-          <th className="text-center" scope="col">
+          <th scope="col">
             Completed
           </th>
-          <th className="text-center" scope="col">
+          <th scope="col">
             Edit
           </th>
         </tr>
